@@ -3,6 +3,11 @@ const router = express.Router();
 const User = require("../model/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const passport = require("passport");
+require("../local-strategy")(passport); // Import local strategy
+require("../google-strategy")(passport); // Import Google strategy
+
+// Local Authentication Routes
 
 router.post("/register", async (req, res) => {
   try {
@@ -17,43 +22,58 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", async (req, res) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
+router.post("/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
 
     if (!user) {
-      return res.status(404).json("User not found!");
+      return res.status(401).json(info);
     }
 
-    const match = await bcrypt.compare(req.body.password, user.password);
-
-    if (!match) {
-      return res.status(401).json("Wrong credentials!");
-    }
-    const token = jwt.sign({ email: user.email }, process.env.SECRET, {
+    // Sign a JWT token and send it back to the client
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET, {
       expiresIn: "3d",
     });
-    const { password, ...info } = user._doc;
-    res
-      .cookie("token", token, {
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
-      })
-      .status(200)
-      .json(info);
-  } catch (err) {
-    res.status(500).json(err);
-  }
+    res.cookie("token", token).status(200).json(info);
+  })(req, res, next);
 });
 
+// Google Authentication Routes
+
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "http://localhost:3000" }),
+  (req, res) => {
+    const token = req.user.token;
+    res
+      .cookie("token", token)
+      .status(200)
+      .redirect("http://localhost:3000");
+  }
+);
+
 router.get("/refetch", (req, res) => {
-  const token = req.cookies.token;
+  const token = req.headers.authorization || req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
   jwt.verify(token, process.env.SECRET, {}, async (err, data) => {
     if (err) {
-      return res.status(404).json(err);
+      return res.status(403).json({ message: "Invalid token" });
     }
-    res.status(200).json(data);
+
+    // If token is valid, return user data
+    const user = await User.findById(data.userId);
+    res.status(200).json(user);
   });
 });
 
