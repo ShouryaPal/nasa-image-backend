@@ -58,7 +58,7 @@ router.get(
   (req, res) => {
     const token = req.user.token;
     res
-      .cookie("token", token, {secure: true })
+      .cookie("token", token, { sameSite: "strict", secure: true })
       .status(200)
       .redirect("https://nasa-image-one.vercel.app");
   }
