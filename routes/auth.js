@@ -49,13 +49,13 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "http://localhost:3000" }),
+  passport.authenticate("google", { failureRedirect: "https://localhost:3000" }),
   (req, res) => {
     const token = req.user.token;
     res
       .cookie("token", token)
       .status(200)
-      .redirect("http://localhost:3000");
+      .redirect("https://localhost:3000");
   }
 );
 
