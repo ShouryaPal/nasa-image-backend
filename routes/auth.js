@@ -36,7 +36,10 @@ router.post("/login", (req, res, next) => {
     const token = jwt.sign({ userId: user._id }, process.env.SECRET, {
       expiresIn: "3d",
     });
-    res.cookie("token", token).status(200).json(info);
+    res
+      .cookie("token", token, { sameSite: "lax", secure: true })
+      .status(200)
+      .json(info);
   })(req, res, next);
 });
 
@@ -49,7 +52,9 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "https://nasa-image-one.vercel.app" }),
+  passport.authenticate("google", {
+    failureRedirect: "https://nasa-image-one.vercel.app",
+  }),
   (req, res) => {
     const token = req.user.token;
     res
