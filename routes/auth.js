@@ -58,14 +58,14 @@ router.get(
   (req, res) => {
     const token = req.user.token;
     res
-      .cookie("token", token, { sameSite: "strict", secure: true })
+      .cookie("token", token, { sameSite: "none", secure: true })
       .status(200)
       .redirect("https://nasa-image-one.vercel.app");
   }
 );
 
 router.get("/refetch", (req, res) => {
-  const token = req.headers.authorization || req.cookies.token;
+  const token = req.cookies.token || req.headers.authorization;
 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
