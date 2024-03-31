@@ -37,7 +37,7 @@ router.post("/login", (req, res, next) => {
       expiresIn: "3d",
     });
     res
-      .cookie("token", token, { sameSite: "lax", secure: true })
+      .cookie("token", token, { sameSite: "none", secure: true })
       .status(200)
       .json(info);
   })(req, res, next);
