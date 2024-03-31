@@ -58,7 +58,6 @@ router.get(
   (req, res) => {
     const token = req.user.token;
     res
-      .clearCookie("connect.sid")
       .cookie("token", token, { sameSite: "none", secure: true })
       .status(200)
       .redirect("https://nasa-image-one.vercel.app");

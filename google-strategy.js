@@ -11,7 +11,8 @@ module.exports = (passport) => {
       {
         clientID: process.env.GOOGLE_CLIENT_ID,
         clientSecret: process.env.OAUTH_SECRET,
-        callbackURL: "https://nasa-image-backend.onrender.com/api/auth/google/callback",
+        callbackURL:
+          "https://nasa-image-backend.onrender.com/api/auth/google/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
@@ -41,11 +42,17 @@ module.exports = (passport) => {
     )
   );
 
+  // Serialize and deserialize user
   passport.serializeUser((user, done) => {
-    done(null, user);
+    done(null, user.id);
   });
 
-  passport.deserializeUser((user, done) => {
-    done(null, user);
+  passport.deserializeUser(async (id, done) => {
+    try {
+      const user = await User.findById(id);
+      done(null, user);
+    } catch (err) {
+      done(err);
+    }
   });
 };
