@@ -25,7 +25,7 @@ dotenv.config();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://localhost:3000",
+    origin: "https://nasa-image-one.vercel.app",
     credentials: true,
   })
 );
