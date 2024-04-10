@@ -4,9 +4,9 @@ const User = require("../model/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
-require("../local-strategy")(passport); // Import local strategy
-require("../google-strategy")(passport); // Import Google strategy
-
+require("../local-strategy")(passport);
+require("../google-strategy")(passport);
+require("../jwt-strategy")(passport);
 // Local Authentication Routes
 
 router.post("/register", async (req, res) => {
@@ -58,28 +58,26 @@ router.get(
   (req, res) => {
     const { user, token } = req.user;
     res
-      .cookie("token", token, { sameSite: "none", secure: true })
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      })
       .status(200)
       .redirect("https://nasa-image-one.vercel.app");
   }
 );
 
-router.get("/refetch", (req, res) => {
-  const token = req.cookies.token || req.headers.authorization;
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  jwt.verify(token, process.env.SECRET, {}, async (err, data) => {
-    if (err) {
-      return res.status(403).json({ message: "Invalid token" });
+router.get(
+  "/refetch",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    try {
+      // The user object is now available in req.user
+      res.status(200).json(req.user);
+    } catch (err) {
+      res.status(403).json({ message: "Invalid token" });
     }
-
-    // If token is valid, return user data
-    const user = await User.findById(data.userId);
-    res.status(200).json(user);
-  });
-});
-
+  }
+);
 module.exports = router;
