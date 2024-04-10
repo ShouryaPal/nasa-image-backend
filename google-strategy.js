@@ -16,23 +16,15 @@ module.exports = (passport) => {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          // Check if user already exists
           let user = await User.findOne({ email: profile.emails[0].value });
 
           if (!user) {
-            // If user doesn't exist, create a new one
             user = new User({
               email: profile.emails[0].value,
               provider: "google",
-              // Other fields...
             });
             await user.save();
           }
-
-          // Sign JWT token
-          const token = jwt.sign({ email: user.email }, process.env.SECRET, {
-            expiresIn: "3d",
-          });
 
           return done(null, { user, token });
         } catch (error) {
@@ -41,9 +33,9 @@ module.exports = (passport) => {
       }
     )
   );
-
+  // Serialize and deserialize user
   passport.serializeUser((user, done) => {
-    done(null, user._id);
+    done(null, user.id);
   });
 
   passport.deserializeUser(async (id, done) => {

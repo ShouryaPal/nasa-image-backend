@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
-const session = require("express-session"); // Add express-session middleware
+const session = require("cookie-session"); 
 const localStrategy = require("./local-strategy");
 const googleStrategy = require("./google-strategy");
 const authRoute = require("./routes/auth");
@@ -30,11 +30,11 @@ app.use(
   })
 );
 app.use(cookieParser());
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || process.env.SECRET,
-    resave: false,
-    saveUninitialized: false,
+    keys: process.env.SESSION_SECRET || process.env.SECRET,
+    maxAge: 24 * 60 * 60 * 1000,
   })
 );
 
