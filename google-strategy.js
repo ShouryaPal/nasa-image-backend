@@ -25,6 +25,9 @@ module.exports = (passport) => {
             });
             await user.save();
           }
+          const token = jwt.sign({ email: user.email }, process.env.SECRET, {
+            expiresIn: "3d",
+          });
 
           return done(null, { user, token });
         } catch (error) {
