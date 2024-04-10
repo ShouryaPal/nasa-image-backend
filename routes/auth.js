@@ -82,7 +82,7 @@ router.get("/refetch", (req, res) => {
 
 router.get(
   "/googlerefetch",
-  passport.authenticate("jwt", { session: false }),
+  passport.authenticate("google", { session: false }),
   async (req, res) => {
     try {
       res.status(200).json(req.user);
